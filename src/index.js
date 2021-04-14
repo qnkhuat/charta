@@ -17,7 +17,7 @@ class TextArea extends React.Component{
     this.state = {
       x: props.x,
       y: props.y,
-      value: ' ',
+      value: '',
       rows: 1,
       longest_line: '',
     };
@@ -59,23 +59,18 @@ class Paper extends React.Component {
     super(props);
     this.state = {
       divs: [],
-      x: 0,
-      y: 0,
     };
-  }
-  
-  createTextArea(x, y){
-    return (
-        <TextArea key={`${x},${y}`} x={x} y={y}/>  
-    )
   }
 
   createDiv(e) {
     const x = e.clientX,
       y = e.clientY;
     const divs = this.state.divs.slice();
-    divs.push(this.createTextArea(x, y));
-    this.setState({divs:divs});
+    const divRef = React.createRef();
+    const div = <TextArea key={`${x},${y}`} x={x} y={y} ref={divRef}/>;
+    const newDivs = divs.filter(div => div.ref.current.state.value.length > 0); // Remove non-text div
+    newDivs.push({div:div, ref:divRef}); // Add the current one
+    this.setState({divs:newDivs});
   }
 
   render() {
@@ -87,7 +82,7 @@ class Paper extends React.Component {
         onClick={this.createDiv.bind(this)}
       >
         {divs.length === 0 && intro}
-        <div id="texts">{divs.length !== 0 && divs.map((div)=> div)}</div>
+        <div id="texts">{divs.length !== 0 && divs.map((div)=> div.div)}</div>
       </div>
     )
   }
