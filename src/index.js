@@ -79,15 +79,15 @@ class Paper extends React.Component {
   }
 
   render() {
+    const intro = <h3 className="center absolute z-10 text-center text-gray-400 text-xl">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     const divs = this.state.divs;
     return (
       <div 
         className={`w-full h-full absolute top-0 left-0 bg-white`}
         onClick={this.createDiv.bind(this)}
       >
-        <div>
-          {divs.length !== 0 && divs.map((div)=> div)}
-        </div>
+        {divs.length == 0 && intro}
+        <div id="texts">{divs.length !== 0 && divs.map((div)=> div)}</div>
       </div>
     )
   }
@@ -95,7 +95,6 @@ class Paper extends React.Component {
 
 class App extends React.Component {
   render(){
-    const intro = <h3 className="center absolute z-10 text-center text-gray-400 text-xl">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     return (
       <div id="wrapper ">
         <Paper/>
