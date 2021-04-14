@@ -16,8 +16,7 @@ body {
 }
 
 
-
-textarea {
+.textarea-purge{
   border: none;
   overflow: auto;
   outline: none;

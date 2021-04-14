@@ -1,9 +1,17 @@
-import './index.css'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css'
 
+
+function getTextWidth(text) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = getComputedStyle(document.body).font;
+  return context.measureText(text).width;
+}
+
 class TextArea extends React.Component{
+  // Maybe construct into multiple p lines rather than one single Textarea
   constructor(props){
     super(props);
     this.state = {
@@ -12,38 +20,39 @@ class TextArea extends React.Component{
       value: '',
       rows: 3,
       cols: 30,
-
+      longest_line: '',
     };
-
   }
 
   handleChange(e){
     const text = e.target.value;
     const lines = text.split("\n");
-    const max_len = lines.reduce((a, b) => a.length > b.length ? a : b, '').length;
-
+    const longest_line = lines.reduce((a, b) => a.length > b.length ? a : b, '');
 
     this.setState({
       value: text,
       rows: lines.length > 3 ? lines.length : 3,
-      cols: max_len > 30 ? max_len : 30
+      cols: longest_line.length > 30 ? longest_line.length : 30,
+      longest_line: longest_line,
     });
   }
 
   render(){
+    const textWidth = getTextWidth(this.state.longest_line);
     const style = {
       position: 'absolute',
       left: this.state.x + 'px',
       top: this.state.y + 'px',
-      background:'transparent'
+      width: textWidth + 'px',
+      background:'transparent',
     }
+
     return (
       <textarea style={style} autoFocus 
+        className='textarea-purge'
         rows={this.state.rows}
-        cols={this.state.cols}
         onChange={this.handleChange.bind(this)}/>  
     )
-
   }
 }
 
@@ -91,8 +100,10 @@ class Paper extends React.Component {
 
 class App extends React.Component {
   render(){
+    const intro = <h3 className="center absolute z-10 text-center text-gray-400 text-xl">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     return (
-      <div id="wrapper">
+      <div id="wrapper ">
+        {intro}
         <Paper/>
       </div>
     )
