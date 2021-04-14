@@ -17,9 +17,8 @@ class TextArea extends React.Component{
     this.state = {
       x: props.x,
       y: props.y,
-      value: '',
-      rows: 3,
-      cols: 30,
+      value: ' ',
+      rows: 1,
       longest_line: '',
     };
   }
@@ -31,8 +30,7 @@ class TextArea extends React.Component{
 
     this.setState({
       value: text,
-      rows: lines.length > 3 ? lines.length : 3,
-      cols: longest_line.length > 30 ? longest_line.length : 30,
+      rows: lines.length,
       longest_line: longest_line,
     });
   }
@@ -43,14 +41,14 @@ class TextArea extends React.Component{
       position: 'absolute',
       left: this.state.x + 'px',
       top: this.state.y + 'px',
-      width: textWidth + 'px',
+      width: textWidth > 0 ? textWidth : 30 + 'px',
       background:'transparent',
     }
 
     return (
       <textarea style={style} autoFocus 
-        className='textarea-purge'
         rows={this.state.rows}
+        className="textarea-purge"
         onChange={this.handleChange.bind(this)}/>  
     )
   }
@@ -60,7 +58,6 @@ class Paper extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      color: "bg-white",
       divs: [],
       x: 0,
       y: 0,
@@ -85,16 +82,14 @@ class Paper extends React.Component {
     const divs = this.state.divs;
     return (
       <div 
-        className={`w-full h-full absolute top-0 left-0 ${this.state.color}`}
+        className={`w-full h-full absolute top-0 left-0 bg-white`}
         onClick={this.createDiv.bind(this)}
       >
         <div>
           {divs.length !== 0 && divs.map((div)=> div)}
         </div>
-
       </div>
     )
-
   }
 }
 
@@ -103,7 +98,6 @@ class App extends React.Component {
     const intro = <h3 className="center absolute z-10 text-center text-gray-400 text-xl">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     return (
       <div id="wrapper ">
-        {intro}
         <Paper/>
       </div>
     )
