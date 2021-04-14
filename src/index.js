@@ -68,11 +68,6 @@ class Paper extends React.Component {
     const x = e.clientX,
       y = e.clientY;
     const divs = this.state.divs.slice();
-    const newdivs = [];
-    console.log(divs);
-    for (const div in divs){
-      console.log(div);
-    }
     divs.push(this.createTextArea(x, y));
     this.setState({divs:divs});
   }
