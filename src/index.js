@@ -86,7 +86,7 @@ class Paper extends React.Component {
         className={`w-full h-full absolute top-0 left-0 bg-white`}
         onClick={this.createDiv.bind(this)}
       >
-        {divs.length == 0 && intro}
+        {divs.length === 0 && intro}
         <div id="texts">{divs.length !== 0 && divs.map((div)=> div)}</div>
       </div>
     )
