@@ -3,8 +3,9 @@ import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
 import './index.css'
 import {
-    ControlledMenu,
-    MenuItem,
+  ControlledMenu,
+  MenuItem,
+  SubMenu
 } from '@szhsin/react-menu';
 import '@szhsin/react-menu/dist/index.css';
 import {SketchField, Tools} from 'react-sketch';
@@ -124,25 +125,26 @@ class TextArea extends React.Component{
 class Paper extends React.Component {
   constructor(props) {
     super(props);
+    this.isDragging = false;
     this.state = {
       divs: [],
       selectedMode: 'text',
-      isDragging: false,
       menuOpen: false,
-      intact:true
+      intact:true,
+      tool:Tools.Pencil,
+      toolLineWidth:3,
+      toolColor:"black"
     };
-    this.options = [
-      {value: 'text', label: 'Text'},
-      {value: 'sketch', label: 'Sketch'},
-    ]
     this.options = {
-      text: {label: '🖋', enable:true},
-      sketch: {label: '🎨', enable:false}
+      ruler: {label: '📏',},
+      eraser: {label: '🧽',},
+      sketch: {label: '✏️',},
+      text: {label: '✒️'},
     }
   }
 
 
-  getZIndex(mode){ return mode == this.state.selectedMode ? 'z-30' : 'z-20';}
+  getZIndex(mode){ return mode === this.state.selectedMode ? 'z-30' : 'z-20';}
 
   createDiv(x, y){
     const divs = this.state.divs.slice();
@@ -177,32 +179,42 @@ class Paper extends React.Component {
     }
   }
 
-  handleMenuClick(e){
-    if (this.state.isDragging){
-      this.setState({menuOpen: false})
-    } else {
-      this.setState({menuOpen: !this.state.menuOpen})
-    }
-  }
-
   handleModeChange(e) {
+    let tool = Tools.Pencil, lineWidth=5, color="black";
+    switch (e.value){
+      case "ruler":
+        tool = Tools.Line;
+        color = "black"
+        break;
+      case "eraser":
+        tool = Tools.Pencil;
+        lineWidth = 25;
+        color = "white";
+        break;
+      case "sketch":
+        tool = Tools.Pencil;
+        color = "black";
+      default:
+        break;
+    }
     this.setState({
       selectedMode: e.value,
+      tool: tool,
+      toolColor: color,
+      toolLineWidth: lineWidth,
       menuOpen: false,
     })
   }
-
-  handleDrag(){
-    this.setState({isDragging:true, menuOpen: false});
+  
+  handleOnMouseOver(){ // for phone only
+    this.setState({menuOpen:true});
   }
 
-  handleStopDrag(){
-    setTimeout(() => {
-      this.setState({isDragging:false});
-    }, 10) // stop is called before menuclick.
+  handleOnMouseLeave(){
+    this.setState({menuOpen:false});
   }
 
-  onSketchChange() {
+  handleOnSketchChange() {
     if (this.state.intact){
       this.setState({intact:false})
     }
@@ -217,36 +229,32 @@ class Paper extends React.Component {
     const menuButton = <button 
       className='text-3xl rounded-full w-16 h-16 text-center bg-pink-300 focus:outline-none'
       ref={menuRef} 
-      onClick={this.handleMenuClick.bind(this)}
     >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
-      <div>
-        {this.state.intact == true && intro}
-        <div id="menu" className='absolute z-50 float-left'>
-          <Draggable
-            onDrag={this.handleDrag.bind(this)}
-            onStop={this.handleStopDrag.bind(this)}
-            defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
-          >
-            <div>
-              {menuButton}
-              <ControlledMenu
-                className='bg-transparent shadow-none min-w-0 text-center'
-                anchorRef={menuRef}
-                direction='top'
-                isOpen={this.state.menuOpen}
-                onClick={this.handleModeChange.bind(this)}
-              >
-                {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
-                <MenuItem value={key} key={key} 
-                  className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
-                  <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
-                </MenuItem>
-                )}
-              </ControlledMenu>
-            </div>
-          </Draggable>
+      <div className="cursor-pointer">
+        {this.state.intact === true && intro}
+        <div id="menu" className='absolute z-50 bottom-6 right-6'
+          onMouseLeave={this.handleOnMouseLeave.bind(this)}
+          onMouseOver={this.handleOnMouseOver.bind(this)}
+        >
+          <div>
+            {menuButton}
+            <ControlledMenu
+              className='bg-transparent shadow-none min-w-0 text-center'
+              anchorRef={menuRef}
+              direction='top'
+              isOpen={this.state.menuOpen}
+              onClick={this.handleModeChange.bind(this)}
+            >
+              {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
+              <MenuItem value={key} key={key} 
+                className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
+                <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+              </MenuItem>
+              )}
+            </ControlledMenu>
+          </div>
         </div>
 
         <div id="paper" 
@@ -263,10 +271,10 @@ class Paper extends React.Component {
             className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
             <SketchField width='200vw'
               height='200vh'
-              tool={Tools.Pencil}
-              lineColor='black'
-              lineWidth={3}
-              onChange={this.onSketchChange.bind(this)}
+              tool={this.state.tool}
+              lineColor={this.state.toolColor}
+              lineWidth={this.state.toolLineWidth}
+              onChange={this.handleOnSketchChange.bind(this)}
             />
           </div>
 
