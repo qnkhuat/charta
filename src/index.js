@@ -205,14 +205,8 @@ class Paper extends React.Component {
       menuOpen: false,
     })
   }
-
-  handleOnClick(){ // for mobile only
-    if (!this.state.intact){
-      this.setState({menuOpen:!this.state.menuOpen});
-    }
-  }
-      
-  handleOnMouseEnter(){
+  
+  handleOnMouseOver(){ // for phone only
     this.setState({menuOpen:true});
   }
 
@@ -235,16 +229,14 @@ class Paper extends React.Component {
     const menuButton = <button 
       className='text-3xl rounded-full w-16 h-16 text-center bg-pink-300 focus:outline-none'
       ref={menuRef} 
-      onClick={this.handleOnClick.bind(this)}
-      
     >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
       <div className="cursor-pointer">
         {this.state.intact === true && intro}
         <div id="menu" className='absolute z-50 bottom-6 right-6'
-          onMouseEnter={this.handleOnMouseEnter.bind(this)}
           onMouseLeave={this.handleOnMouseLeave.bind(this)}
+          onMouseOver={this.handleOnMouseOver.bind(this)}
         >
           <div>
             {menuButton}
