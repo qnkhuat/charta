@@ -112,7 +112,7 @@ class Paper extends React.Component {
   }
 
   render() {
-    const intro = <h3 className="center absolute z-10 text-center text-gray-400 text-xl">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
+    const intro = <h3 className="center absolute z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     const divs = this.state.divs;
     return (
       <div 
