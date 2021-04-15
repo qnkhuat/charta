@@ -204,17 +204,17 @@ class Paper extends React.Component {
       toolLineWidth: lineWidth,
       menuOpen: false,
     })
-
   }
 
+  handleOnClick(){
+    this.setState({menuOpen:!this.state.menuOpen});
+  }
       
   handleOnMouseEnter(){
-    console.log("enter");
     this.setState({menuOpen:true});
   }
 
   handleOnMouseLeave(){
-    console.log("leave");
     this.setState({menuOpen:false});
   }
 
@@ -233,6 +233,7 @@ class Paper extends React.Component {
     const menuButton = <button 
       className='text-3xl rounded-full w-16 h-16 text-center bg-pink-300 focus:outline-none'
       ref={menuRef} 
+      onClick={this.handleOnClick.bind(this)}
       
     >{this.options[this.state.selectedMode]['label']}</button>;
 
