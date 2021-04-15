@@ -95,6 +95,7 @@ class Paper extends React.Component {
       selectedMode: 'text',
       isDragging: false,
       menuOpen: false,
+      intact:true
     };
     this.options = [
       {value: 'text', label: 'Text'},
@@ -120,6 +121,10 @@ class Paper extends React.Component {
   }
 
   handleOnClick(e) {
+   if (this.state.intact){
+      this.setState({intact:false})
+    }
+
     const x = e.clientX,
       y = e.clientY;
     const divs = this.state.divs.slice();
@@ -160,6 +165,12 @@ class Paper extends React.Component {
     }, 10) // stop is called before menuclick.
   }
 
+  onSketchChange() {
+    if (this.state.intact){
+      this.setState({intact:false})
+    }
+  }
+
   render() {
     const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     const divs = this.state.divs;
@@ -174,42 +185,50 @@ class Paper extends React.Component {
 
     return (
       <div>
-        {divs.length === 0 && intro}
-        <div id="paper" className="absolute w-full h-full top-0 left-0">
-          <div id="menu" className='z-50 absolute'>
-            <Draggable
-              onDrag={this.handleDrag.bind(this)}
-              onStop={this.handleStopDrag.bind(this)}
-              defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
-            >
-              <div>
-                {menuButton}
-                <ControlledMenu
-                  className='bg-transparent shadow-none min-w-0 text-center'
-                  anchorRef={menuRef}
-                  direction='top'
-                  isOpen={this.state.menuOpen}
-                  onClick={this.handleModeChange.bind(this)}
-                >
-                  {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
-                  <MenuItem value={key} key={key} 
-                    className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
-                    <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
-                  </MenuItem>
-                  )}
-                </ControlledMenu>
-              </div>
-            </Draggable>
-          </div>
+        {this.state.intact == true && intro}
+        <div id="menu" className='absolute z-50'>
+          <Draggable
+            onDrag={this.handleDrag.bind(this)}
+            onStop={this.handleStopDrag.bind(this)}
+            defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
+          >
+            <div>
+              {menuButton}
+              <ControlledMenu
+                className='bg-transparent shadow-none min-w-0 text-center'
+                anchorRef={menuRef}
+                direction='top'
+                isOpen={this.state.menuOpen}
+                onClick={this.handleModeChange.bind(this)}
+              >
+                {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
+                <MenuItem value={key} key={key} 
+                  className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
+                  <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+                </MenuItem>
+                )}
+              </ControlledMenu>
+            </div>
+          </Draggable>
+        </div>
 
-          
+        <div id="paper" className="absolute w-screen h-screen overflow-scroll top-0 left-0">
+          <div 
+            id="texts"
+            className={`bg-transparent ${this.getZIndex('text')} w-x2 h-x2 absolute`}
+            onClick={this.handleOnClick.bind(this)}
+          >
+            {divs.length !== 0 && divs.map((div)=> div.div)}
+          </div>
           <div id="sketch" 
-            className={`${this.getZIndex('sketch')} bg-green-200`}>
-            <SketchField width='1024px'
-              height='768px'
+            className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
+            <SketchField width='200vw'
+              height='200vh'
               tool={Tools.Pencil}
               lineColor='black'
-              lineWidth={3}/>
+              lineWidth={3}
+              onChange={this.onSketchChange.bind(this)}
+            />
           </div>
 
         </div>
