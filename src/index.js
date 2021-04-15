@@ -206,8 +206,10 @@ class Paper extends React.Component {
     })
   }
 
-  handleOnClick(){
-    this.setState({menuOpen:!this.state.menuOpen});
+  handleOnClick(){ // for mobile only
+    if (!this.state.intact){
+      this.setState({menuOpen:!this.state.menuOpen});
+    }
   }
       
   handleOnMouseEnter(){
