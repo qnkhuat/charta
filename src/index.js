@@ -239,33 +239,27 @@ class Paper extends React.Component {
     return (
       <div className="cursor-pointer">
         {this.state.intact === true && intro}
-        <div id="menu" className='absolute z-50 float-left'
+        <div id="menu" className='absolute z-50 bottom-6 right-6'
           onMouseEnter={this.handleOnMouseEnter.bind(this)}
           onMouseLeave={this.handleOnMouseLeave.bind(this)}
         >
-          <Draggable
-            onDrag={this.handleOnDrag.bind(this)}
-            onStop={this.handleOnDragStop.bind(this)}
-            defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
-          >
-            <div>
-              {menuButton}
-              <ControlledMenu
-                className='bg-transparent shadow-none min-w-0 text-center'
-                anchorRef={menuRef}
-                direction='top'
-                isOpen={this.state.menuOpen}
-                onClick={this.handleModeChange.bind(this)}
-              >
-                {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
-                <MenuItem value={key} key={key} 
-                  className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
-                  <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
-                </MenuItem>
-                )}
-              </ControlledMenu>
-            </div>
-          </Draggable>
+          <div>
+            {menuButton}
+            <ControlledMenu
+              className='bg-transparent shadow-none min-w-0 text-center'
+              anchorRef={menuRef}
+              direction='top'
+              isOpen={this.state.menuOpen}
+              onClick={this.handleModeChange.bind(this)}
+            >
+              {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
+              <MenuItem value={key} key={key} 
+                className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
+                <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+              </MenuItem>
+              )}
+            </ControlledMenu>
+          </div>
         </div>
 
         <div id="paper" 
