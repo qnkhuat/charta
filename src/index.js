@@ -130,11 +130,16 @@ class Paper extends React.Component {
       divs: [],
       selectedMode: 'text',
       menuOpen: false,
-      intact:true
+      intact:true,
+      tool:Tools.Pencil,
+      toolLineWidth:3,
+      toolColor:"black"
     };
     this.options = {
-      text: {label: '🖋'},
-      sketch: {label: '🎨', options: {label:'red'}}
+      ruler: {label: '📏',},
+      eraser: {label: '🧽',},
+      sketch: {label: '✏️',},
+      text: {label: '✒️'},
     }
   }
 
@@ -175,29 +180,41 @@ class Paper extends React.Component {
   }
 
   handleModeChange(e) {
+    let tool = Tools.Pencil, lineWidth=5, color="black";
+    switch (e.value){
+      case "ruler":
+        tool = Tools.Line;
+        color = "black"
+        break;
+      case "eraser":
+        tool = Tools.Pencil;
+        lineWidth = 25;
+        color = "white";
+        break;
+      case "sketch":
+        tool = Tools.Pencil;
+        color = "black";
+      default:
+        break;
+    }
     this.setState({
       selectedMode: e.value,
+      tool: tool,
+      toolColor: color,
+      toolLineWidth: lineWidth,
       menuOpen: false,
     })
+
   }
 
-  handleOnDrag(){
-    this.setState({menuOpen: false});
-    this.isDragging = true
-  }
-
-  handleOnDragStop(){
-    this.isDragging = false; 
-    this.setState({menuOpen:true});
-  }
-    
+      
   handleOnMouseEnter(){
-    if (!this.isDragging && this.state.menuOpen == false) {
-      this.setState({menuOpen:true});
-    }
+    console.log("enter");
+    this.setState({menuOpen:true});
   }
 
   handleOnMouseLeave(){
+    console.log("leave");
     this.setState({menuOpen:false});
   }
 
@@ -205,23 +222,6 @@ class Paper extends React.Component {
     if (this.state.intact){
       this.setState({intact:false})
     }
-  }
-
-  genMenu(options){
-    
-    
-
-//k    {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
-//k                <MenuItem value={key} key={key} 
-//k                  className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
-//k                  <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
-//k                  {if ('options' in this.options[key]){
-//k
-//k                  }}
-//k                </MenuItem>
-//k                )}
-//k
-
   }
 
   render() {
@@ -276,9 +276,9 @@ class Paper extends React.Component {
             className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
             <SketchField width='200vw'
               height='200vh'
-              tool={Tools.Pencil}
-              lineColor='black'
-              lineWidth={3}
+              tool={this.state.tool}
+              lineColor={this.state.toolColor}
+              lineWidth={this.state.toolLineWidth}
               onChange={this.handleOnSketchChange.bind(this)}
             />
           </div>
