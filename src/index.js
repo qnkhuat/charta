@@ -124,10 +124,10 @@ class TextArea extends React.Component{
 class Paper extends React.Component {
   constructor(props) {
     super(props);
+    this.isDragging = false;
     this.state = {
       divs: [],
       selectedMode: 'text',
-      isDragging: false,
       menuOpen: false,
       intact:true
     };
@@ -142,7 +142,7 @@ class Paper extends React.Component {
   }
 
 
-  getZIndex(mode){ return mode == this.state.selectedMode ? 'z-30' : 'z-20';}
+  getZIndex(mode){ return mode === this.state.selectedMode ? 'z-30' : 'z-20';}
 
   createDiv(x, y){
     const divs = this.state.divs.slice();
@@ -177,14 +177,6 @@ class Paper extends React.Component {
     }
   }
 
-  handleMenuClick(e){
-    if (this.state.isDragging){
-      this.setState({menuOpen: false})
-    } else {
-      this.setState({menuOpen: !this.state.menuOpen})
-    }
-  }
-
   handleModeChange(e) {
     this.setState({
       selectedMode: e.value,
@@ -192,17 +184,27 @@ class Paper extends React.Component {
     })
   }
 
-  handleDrag(){
-    this.setState({isDragging:true, menuOpen: false});
+  handleOnDrag(){
+    this.setState({menuOpen: false});
+    this.isDragging = true
   }
 
-  handleStopDrag(){
-    setTimeout(() => {
-      this.setState({isDragging:false});
-    }, 10) // stop is called before menuclick.
+  handleOnDragStop(){
+    this.isDragging = false; 
+    this.setState({menuOpen:true});
+  }
+    
+  handleOnMouseEnter(){
+    if (!this.isDragging && this.state.menuOpen == false) {
+      this.setState({menuOpen:true});
+    }
   }
 
-  onSketchChange() {
+  handleOnMouseLeave(){
+    this.setState({menuOpen:false});
+  }
+
+  handleOnSketchChange() {
     if (this.state.intact){
       this.setState({intact:false})
     }
@@ -217,16 +219,19 @@ class Paper extends React.Component {
     const menuButton = <button 
       className='text-3xl rounded-full w-16 h-16 text-center bg-pink-300 focus:outline-none'
       ref={menuRef} 
-      onClick={this.handleMenuClick.bind(this)}
+      
     >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
       <div>
-        {this.state.intact == true && intro}
-        <div id="menu" className='absolute z-50 float-left'>
+        {this.state.intact === true && intro}
+        <div id="menu" className='absolute z-50 float-left'
+          onMouseEnter={this.handleOnMouseEnter.bind(this)}
+          onMouseLeave={this.handleOnMouseLeave.bind(this)}
+        >
           <Draggable
-            onDrag={this.handleDrag.bind(this)}
-            onStop={this.handleStopDrag.bind(this)}
+            onDrag={this.handleOnDrag.bind(this)}
+            onStop={this.handleOnDragStop.bind(this)}
             defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
           >
             <div>
@@ -266,7 +271,7 @@ class Paper extends React.Component {
               tool={Tools.Pencil}
               lineColor='black'
               lineWidth={3}
-              onChange={this.onSketchChange.bind(this)}
+              onChange={this.handleOnSketchChange.bind(this)}
             />
           </div>
 
