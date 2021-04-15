@@ -88,6 +88,15 @@ class TextArea extends React.Component{
     this.element.focus();
   }
 
+  handleStopDrag(){
+    const rect = this.element.getBoundingClientRect();
+    this.setState({
+      x:rect.x,
+      y:rect.y,
+    })
+  }
+
+
   render(){
     const style = {
       position: 'absolute',
@@ -99,12 +108,17 @@ class TextArea extends React.Component{
     }
 
     return (
-      <textarea style={style} autoFocus 
-        className={`textarea-purge focus:border-blue-300`}
-        ref={(element) => {this.element = element }}
-        rows={this.state.rows}
-        onBlur={this.handleOnBlur.bind(this)}
-        onChange={this.handleChange.bind(this)}/>  
+      <Draggable
+        onStop={this.handleStopDrag.bind(this)}
+      >
+        <textarea style={style} autoFocus 
+          className={`textarea-purge focus:border-blue-300`}
+          ref={(element) => {this.element = element }}
+          rows={this.state.rows}
+          onBlur={this.handleOnBlur.bind(this)}
+          onChange={this.handleChange.bind(this)}/>  
+
+      </Draggable>
     )
   }
 }
@@ -143,12 +157,13 @@ class Paper extends React.Component {
   }
 
   handleOnClick(e) {
-   if (this.state.intact){
+    if (this.state.intact){
       this.setState({intact:false})
     }
-
-    const x = e.clientX,
-      y = e.clientY;
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left,
+      y = e.clientY - rect.top - 10; // a lil - 10 doesn't kill nobody
+    console.log(e.target);
     const divs = this.state.divs.slice();
     const overlappedDivs = divs.filter(div => isInBoundingBox(x, y, 
       div.ref.current.state.x, div.ref.current.state.y, 
@@ -234,7 +249,9 @@ class Paper extends React.Component {
           </Draggable>
         </div>
 
-        <div id="paper" className="absolute w-screen h-screen overflow-scroll top-0 left-0">
+        <div id="paper" 
+          className="absolute w-screen h-screen overflow-scroll top-0 left-0"
+        >
           <div 
             id="texts"
             className={`bg-transparent ${this.getZIndex('text')} w-x2 h-x2 absolute`}
