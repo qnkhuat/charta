@@ -107,6 +107,8 @@ class Paper extends React.Component {
   }
 
 
+  getZIndex(mode){ return mode == this.state.selectedMode ? 'z-30' : 'z-20';}
+
   createDiv(x, y){
     const divs = this.state.divs.slice();
     const divRef = React.createRef();
@@ -158,10 +160,8 @@ class Paper extends React.Component {
     }, 10) // stop is called before menuclick.
   }
 
-
-
   render() {
-    const intro = <h3 className="center absolute z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
+    const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
     const divs = this.state.divs;
 
     // *** Menu ***
@@ -171,41 +171,47 @@ class Paper extends React.Component {
       ref={menuRef} 
       onClick={this.handleMenuClick.bind(this)}
     >{this.options[this.state.selectedMode]['label']}</button>;
-    
+
     return (
       <div>
         {divs.length === 0 && intro}
-        <div className="absolute z-10">
-          <Draggable
-            onDrag={this.handleDrag.bind(this)}
-            onStop={this.handleStopDrag.bind(this)}
-            defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
-          >
-            <div>
-              {menuButton}
-              <ControlledMenu
-                className='bg-opacity-0 shadow-none min-w-0 text-center'
-                anchorRef={menuRef}
-                direction='top'
-                isOpen={this.state.menuOpen}
-                onClick={this.handleModeChange.bind(this)}
-              >
-                {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
-                <MenuItem value={key} key={key} 
-                  className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
-                  <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
-                </MenuItem>
-                )}
-              </ControlledMenu>
-            </div>
-          </Draggable>
-        </div>
+        <div id="paper" className="absolute w-full h-full top-0 left-0">
+          <div id="menu" className='z-50 absolute'>
+            <Draggable
+              onDrag={this.handleDrag.bind(this)}
+              onStop={this.handleStopDrag.bind(this)}
+              defaultPosition={{x:window.innerWidth-100, y:window.innerHeight-100}}
+            >
+              <div>
+                {menuButton}
+                <ControlledMenu
+                  className='bg-transparent shadow-none min-w-0 text-center'
+                  anchorRef={menuRef}
+                  direction='top'
+                  isOpen={this.state.menuOpen}
+                  onClick={this.handleModeChange.bind(this)}
+                >
+                  {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
+                  <MenuItem value={key} key={key} 
+                    className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
+                    <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+                  </MenuItem>
+                  )}
+                </ControlledMenu>
+              </div>
+            </Draggable>
+          </div>
 
-        <div 
-          className={`w-full h-full bg-white absolute top-0 left-0`}
-          onClick={this.handleOnClick.bind(this)}
-        >
-          <div id="texts">{divs.length !== 0 && divs.map((div)=> div.div)}</div>
+          
+          <div id="sketch" 
+            className={`${this.getZIndex('sketch')} bg-green-200`}>
+            <SketchField width='1024px'
+              height='768px'
+              tool={Tools.Pencil}
+              lineColor='black'
+              lineWidth={3}/>
+          </div>
+
         </div>
       </div>
     )
@@ -217,11 +223,6 @@ class App extends React.Component {
     return (
       <div id="wrapper">
         <Paper/>
-        {/*<SketchField width='1024px'
-                         height='768px'
-                         tool={Tools.Pencil}
-                         lineColor='black'
-                         lineWidth={3}/>*/}
       </div>
     )
   }
