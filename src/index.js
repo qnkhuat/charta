@@ -48,7 +48,7 @@ class TextArea extends React.Component{
     const text = e.target.value;
     const lines = text.split("\n");
     const longest_line = lines.reduce((a, b) => a.length > b.length ? a : b, '');
-    const textWidth = getTextWidth(longest_line);
+    const textWidth = getTextWidth(longest_line) + 1; // safari will broke if not +1
     this.setState({
       value: text,
       rows: lines.length,
@@ -73,7 +73,7 @@ class TextArea extends React.Component{
       position: 'absolute',
       left: this.state.x + 'px',
       top: this.state.y + 'px',
-      width: this.state.width > 0 ? this.state.width : 30 + 'px',
+      width: this.state.width > 30 ? this.state.width : 30 + 'px',
       background: 'transparent',
     }
 
@@ -186,7 +186,7 @@ class Paper extends React.Component {
     return (
       <div>
         {this.state.intact == true && intro}
-        <div id="menu" className='absolute z-50'>
+        <div id="menu" className='absolute z-50 float-left'>
           <Draggable
             onDrag={this.handleDrag.bind(this)}
             onStop={this.handleStopDrag.bind(this)}
