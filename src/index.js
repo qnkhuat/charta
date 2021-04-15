@@ -17,7 +17,8 @@ function getTextWidth(text) {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   context.font = getComputedStyle(document.body).font;
-  return context.measureText(text).width;
+  const width = context.measureText(text).width;
+  return width;
 }
 
 function isInBoundingBox(x, y, bx, by, bw, bh){
@@ -25,35 +26,54 @@ function isInBoundingBox(x, y, bx, by, bw, bh){
     return true;
   }
   return false;
-
 }
 
 class TextArea extends React.Component{
   // Maybe construct into multiple p lines rather than one single Textarea
   constructor(props){
     super(props);
+    this.maxWidthLine = 1; // Default width of a text while editing
+    this.isEditting = true;
     this.state = {
       x: props.x,
       y: props.y,
       value: '',
       rows: 1,
-      width: 1,
+      width: this.maxWidthLine,
       height: 0,
       element: null,
     };
   }
 
-
-  handleChange(e){
+  handleOnBlur(e){
     const text = e.target.value;
     const lines = text.split("\n");
-    const longest_line = lines.reduce((a, b) => a.length > b.length ? a : b, '');
-    const textWidth = getTextWidth(longest_line) + 1; // safari will broke if not +1
     this.setState({
-      value: text,
+      value:text,
       rows: lines.length,
-      width: textWidth, // in px
     });
+    this.isEditting = false;
+  }
+
+  handleChange(e){
+    this.isEditting = true;
+    const text = e.target.value;
+    const lines = text.split("\n");
+    let hasLongerLine = false;
+    lines.forEach((line) => {
+      const lineWidth = getTextWidth(line);
+      if (lineWidth > this.maxWidthLine){
+        this.maxWidthLine = lineWidth;
+        hasLongerLine = true; 
+      }
+    })
+    if (hasLongerLine || lines.length > this.state.rows){
+      this.setState({
+        value: text,
+        rows: lines.length,
+        width: this.maxWidthLine, // in px
+      });
+    }
   }
 
   componentDidUpdate(previousProps, previousState){  
@@ -75,13 +95,15 @@ class TextArea extends React.Component{
       top: this.state.y + 'px',
       width: this.state.width > 30 ? this.state.width : 30 + 'px',
       background: 'transparent',
+      overflow: 'hidden',
     }
 
     return (
       <textarea style={style} autoFocus 
+        className={`textarea-purge focus:border-blue-300`}
         ref={(element) => {this.element = element }}
         rows={this.state.rows}
-        className="textarea-purge"
+        onBlur={this.handleOnBlur.bind(this)}
         onChange={this.handleChange.bind(this)}/>  
     )
   }
@@ -172,7 +194,7 @@ class Paper extends React.Component {
   }
 
   render() {
-    const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere and type!</h3>;
+    const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere to start scribbling!</h3>;
     const divs = this.state.divs;
 
     // *** Menu ***
