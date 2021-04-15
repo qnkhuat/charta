@@ -3,8 +3,9 @@ import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
 import './index.css'
 import {
-    ControlledMenu,
-    MenuItem,
+  ControlledMenu,
+  MenuItem,
+  SubMenu
 } from '@szhsin/react-menu';
 import '@szhsin/react-menu/dist/index.css';
 import {SketchField, Tools} from 'react-sketch';
@@ -131,13 +132,9 @@ class Paper extends React.Component {
       menuOpen: false,
       intact:true
     };
-    this.options = [
-      {value: 'text', label: 'Text'},
-      {value: 'sketch', label: 'Sketch'},
-    ]
     this.options = {
-      text: {label: '🖋', enable:true},
-      sketch: {label: '🎨', enable:false}
+      text: {label: '🖋'},
+      sketch: {label: '🎨', options: {label:'red'}}
     }
   }
 
@@ -210,6 +207,23 @@ class Paper extends React.Component {
     }
   }
 
+  genMenu(options){
+    
+    
+
+//k    {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
+//k                <MenuItem value={key} key={key} 
+//k                  className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
+//k                  <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+//k                  {if ('options' in this.options[key]){
+//k
+//k                  }}
+//k                </MenuItem>
+//k                )}
+//k
+
+  }
+
   render() {
     const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere to start scribbling!</h3>;
     const divs = this.state.divs;
@@ -223,7 +237,7 @@ class Paper extends React.Component {
     >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
-      <div>
+      <div className="cursor-pointer">
         {this.state.intact === true && intro}
         <div id="menu" className='absolute z-50 float-left'
           onMouseEnter={this.handleOnMouseEnter.bind(this)}
