@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
+import ScrollContainer from 'react-indiana-drag-scroll'
 import {SketchField, Tools} from 'react-sketch';
 import {
   ControlledMenu,
@@ -65,7 +66,7 @@ class TextArea extends React.Component{
       element: null,
     };
   }
-  
+
   handleOnBlur(e){
     const text = e.target.value;
     const lines = text.split("\n");
@@ -189,7 +190,7 @@ class Paper extends React.Component {
 
   handleOnClick(e) {
     if (e.target.id !== TEXTS_ID) return;
-    
+
     if (this.state.intact){
       this.setState({intact:false})
     }
@@ -235,7 +236,7 @@ class Paper extends React.Component {
     this.setMode(e.value);
     this.setState({menuOpen:false});
   }
-  
+
   handleOnMouseOver(){ // for phone only
     this.setState({menuOpen:true});
   }
@@ -263,7 +264,7 @@ class Paper extends React.Component {
         this.setMode(next(this.options, this.state.selectedMode));
       }
       if(!hit) return; // exit if not any desiable key is pressed
-      
+
       if (!this.state.menuOpen) this.setState({menuOpen:true});
       if (this.menuTimeoutId != null) clearTimeout(this.menuTimeoutId);
       this.menuTimeoutId = setTimeout(() => {
@@ -291,6 +292,7 @@ class Paper extends React.Component {
           onMouseOver={this.handleOnMouseOver.bind(this)}
         >
           <div>
+
             {<button 
               className='text-2xl md:text-3xl rounded-full w-12 md:w-16 h-12 md:h-16 text-center bg-pink-300 focus:outline-none'
               ref={menuRef} 
@@ -324,8 +326,9 @@ class Paper extends React.Component {
           </div>
           <div id="sketch" 
             className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
-            <SketchField width='200vw'
-              height='200vh'
+            <SketchField 
+              width='100%'
+              height='100%'
               tool={this.state.tool}
               lineColor={this.state.toolColor}
               lineWidth={this.state.toolLineWidth}
