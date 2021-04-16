@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
-import ScrollContainer from 'react-indiana-drag-scroll'
 import {SketchField, Tools} from 'react-sketch';
 import {
   ControlledMenu,
@@ -150,6 +149,7 @@ class Paper extends React.Component {
     this.paperRef = null;
     this.menuTimeoutId = null; // keep track of timeout to close menu
     this.notiTimeoutId= null; // keep track of timeout to close menu
+    this.isMoving = false;
     this.state = {
       divs: [],
       selectedMode: 'text',
@@ -158,7 +158,9 @@ class Paper extends React.Component {
       tool:Tools.Pencil,
       toolLineWidth:3,
       toolColor:"black",
-      noti:""
+      noti:"",
+      moveX:0,
+      moveY:0.
     };
     this.options = {
       selector: {label: '🤚', tool:Tools.Select, lineWidth:5, color:'black'},
@@ -168,6 +170,7 @@ class Paper extends React.Component {
       eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:60, color:'white'},
       pencil: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
       text: {label: '🔤', tool:null, lineWidth: null, color:null},
+      move: {label: '📍', tool:null, lineWidth: null, color:null},
     }
   }
 
@@ -187,7 +190,7 @@ class Paper extends React.Component {
     this.setState({divs:newDivs});
   }
 
-  handleOnClick(e) {
+  handleOnTextsClick(e) {
     if (e.target.id !== TEXTS_ID) return;
 
     if (this.state.intact){
@@ -231,7 +234,7 @@ class Paper extends React.Component {
     }, 1000);
   }
 
-  handleModeChange(e) {
+  handleOnModeChange(e) {
     this.setMode(e.value);
     this.setState({menuOpen:false});
   }
@@ -271,14 +274,33 @@ class Paper extends React.Component {
       }, 1000);
     }
   }
-  log(){
-    console.log("click");
-    window.scrollTo(0, 1000);
+  
+  handleOnMouseDown(){
+    console.log("mousedown");
+    if (this.state.selectedMode == 'move') this.isMoving = true;
+  }
+  handleOnMouseUp(){
+    console.log("mouseUp");
+    if (this.state.selectedMode == 'move') this.isMoving = false;
+  }
+
+  handleOnMouseMove(e){
+    if (this.state.selectedMode == 'move' && this.isMoving){
+      //console.log(`Moving client:(${e.clientX}, ${e.clientY}), page`);
+      const rect = e.target.getBoundingClientRect();
+      console.log(`Moving (${e.clientX - this.state.moveX}, ${e.clientY - this.state.moveY}), Rect (${rect.left}, ${rect.top})`);
+      window.scrollTo(0, e.clientY - this.state.moveY);
+      this.setState({moveX:e.clientX, moveY:e.clientY});
+    //const rect = e.target.getBoundingClientRect();
+    //const x = e.clientX - rect.left,
+    //  y = e.clientY - rect.top - 10; // a lil - 10 doesn't kill nobody
+
+    }
   }
 
   render() {
     const intro = <h3 className="w-full center fixed z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
-    const noti = <h3 className="center top-1/4 jixed z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
+    const noti = <h3 className="center top-1/4 fixed z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
     const divs = this.state.divs;
 
     // *** Menu ***
@@ -305,7 +327,7 @@ class Paper extends React.Component {
               anchorRef={menuRef}
               direction='top'
               isOpen={this.state.menuOpen}
-              onClick={this.handleModeChange.bind(this)}
+              onClick={this.handleOnModeChange.bind(this)}
             >
               {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
               <MenuItem value={key} key={key} 
@@ -319,17 +341,25 @@ class Paper extends React.Component {
 
         <div id="paper" 
           className="absolute w-screen h-screen top-0 left-0 overflow-auto"
-          onClick={this.log.bind(this)}
+          
         >
+          <div id="move"
+            className={`bg-transparent ${this.getZIndex('move')} w-x2 h-x2 absolute`}
+            onMouseMove={this.handleOnMouseMove.bind(this)}
+            onMouseDown={this.handleOnMouseDown.bind(this)}
+            onMouseUp={this.handleOnMouseUp.bind(this)}
+          ></div>
           <div 
             id={TEXTS_ID}
             className={`bg-transparent ${this.getZIndex('text')} w-x2 h-x2 absolute`}
-            onClick={this.handleOnClick.bind(this)}
+            onClick={this.handleOnTextsClick.bind(this)}
           >
             {divs.length !== 0 && divs.map((div)=> div.div)}
           </div>
           <div id="sketch" 
-            className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
+            className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}
+            
+          >
             <SketchField 
               width='100%'
               height='100%'
@@ -337,6 +367,7 @@ class Paper extends React.Component {
               lineColor={this.state.toolColor}
               lineWidth={this.state.toolLineWidth}
               onChange={this.handleOnSketchChange.bind(this)}
+
             />
           </div>
         </div>
