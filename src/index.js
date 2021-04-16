@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
-import './index.css'
+import {SketchField, Tools} from 'react-sketch';
 import {
   ControlledMenu,
   MenuItem,
 } from '@szhsin/react-menu';
 import '@szhsin/react-menu/dist/index.css';
-import {SketchField, Tools} from 'react-sketch';
+import './index.css'
 
 
 const TEXTS_ID= 'texts';
@@ -162,12 +162,13 @@ class Paper extends React.Component {
       noti:""
     };
     this.options = {
+      selector: {label: '🤚', tool:Tools.Select, lineWidth:5, color:'black'},
       square: {label: '🟥', tool:Tools.Rectangle, lineWidth:5, color:'black'},
       circle: {label: '⭕️', tool:Tools.Circle, lineWidth:5, color:'black'},
       line: {label: '📏', tool:Tools.Line, lineWidth:5, color:'black'},
       eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:60, color:'white'},
       pencil: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
-      text: {label: '✒️', tool:null, lineWidth: null, color:null},
+      text: {label: '🔤', tool:null, lineWidth: null, color:null},
     }
   }
 
@@ -226,15 +227,14 @@ class Paper extends React.Component {
       noti:message,
     });
     if (this.notiTimeoutId !== null) clearTimeout(this.notiTimeoutId);
-    this.notiTimeoutId = setTimeout(()=>{
-      this.setState({
-        noti:"",
-      });
+    this.notiTimeoutId = setTimeout(() => {
+      this.setState({noti:""});
     }, 1000);
   }
 
   handleModeChange(e) {
     this.setMode(e.value);
+    this.setState({menuOpen:false});
   }
   
   handleOnMouseOver(){ // for phone only
@@ -274,7 +274,7 @@ class Paper extends React.Component {
   }
 
   render() {
-    const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
+    const intro = <h3 className="w-full center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
     const noti = <h3 className="center top-1/4 absolute z-50 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
     const divs = this.state.divs;
     
@@ -334,7 +334,6 @@ class Paper extends React.Component {
               onChange={this.handleOnSketchChange.bind(this)}
             />
           </div>
-
         </div>
       </div>
     )
