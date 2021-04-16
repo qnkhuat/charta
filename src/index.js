@@ -1,13 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
-import './index.css'
+import ScrollContainer from 'react-indiana-drag-scroll'
+import {SketchField, Tools} from 'react-sketch';
 import {
   ControlledMenu,
   MenuItem,
 } from '@szhsin/react-menu';
 import '@szhsin/react-menu/dist/index.css';
-import {SketchField, Tools} from 'react-sketch';
+import './index.css'
 
 
 const TEXTS_ID= 'texts';
@@ -66,7 +67,6 @@ class TextArea extends React.Component{
     };
   }
 
-  
   handleOnBlur(e){
     const text = e.target.value;
     const lines = text.split("\n");
@@ -162,12 +162,13 @@ class Paper extends React.Component {
       noti:""
     };
     this.options = {
+      selector: {label: '🤚', tool:Tools.Select, lineWidth:5, color:'black'},
       square: {label: '🟥', tool:Tools.Rectangle, lineWidth:5, color:'black'},
       circle: {label: '⭕️', tool:Tools.Circle, lineWidth:5, color:'black'},
       line: {label: '📏', tool:Tools.Line, lineWidth:5, color:'black'},
       eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:60, color:'white'},
       pencil: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
-      text: {label: '✒️', tool:null, lineWidth: null, color:null},
+      text: {label: '🔤', tool:null, lineWidth: null, color:null},
     }
   }
 
@@ -189,7 +190,7 @@ class Paper extends React.Component {
 
   handleOnClick(e) {
     if (e.target.id !== TEXTS_ID) return;
-    
+
     if (this.state.intact){
       this.setState({intact:false})
     }
@@ -226,17 +227,16 @@ class Paper extends React.Component {
       noti:message,
     });
     if (this.notiTimeoutId !== null) clearTimeout(this.notiTimeoutId);
-    this.notiTimeoutId = setTimeout(()=>{
-      this.setState({
-        noti:"",
-      });
+    this.notiTimeoutId = setTimeout(() => {
+      this.setState({noti:""});
     }, 1000);
   }
 
   handleModeChange(e) {
     this.setMode(e.value);
+    this.setState({menuOpen:false});
   }
-  
+
   handleOnMouseOver(){ // for phone only
     this.setState({menuOpen:true});
   }
@@ -264,7 +264,7 @@ class Paper extends React.Component {
         this.setMode(next(this.options, this.state.selectedMode));
       }
       if(!hit) return; // exit if not any desiable key is pressed
-      
+
       if (!this.state.menuOpen) this.setState({menuOpen:true});
       if (this.menuTimeoutId != null) clearTimeout(this.menuTimeoutId);
       this.menuTimeoutId = setTimeout(() => {
@@ -274,20 +274,16 @@ class Paper extends React.Component {
   }
 
   render() {
-    const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
-    const noti = <h3 className="center top-1/4 absolute z-50 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
+    const intro = <h3 className="w-full center absolute z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
+    const noti = <h3 className="center top-1/4 absolute z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
     const divs = this.state.divs;
-    
+
     // *** Menu ***
     const menuRef = React.createRef();
-    const menuButton = <button 
-      className='text-3xl rounded-full w-16 h-16 text-center bg-pink-300 focus:outline-none'
-      ref={menuRef} 
-    >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
       <div id="wrapper" className="cursor-pointer bg-transparent"
-          tabIndex="0"
+        tabIndex="0"
       >
         {this.state.intact === true && intro}
         {noti}
@@ -296,7 +292,11 @@ class Paper extends React.Component {
           onMouseOver={this.handleOnMouseOver.bind(this)}
         >
           <div>
-            {menuButton}
+
+            {<button 
+              className='text-2xl md:text-3xl rounded-full w-12 md:w-16 h-12 md:h-16 text-center bg-pink-300 focus:outline-none'
+              ref={menuRef} 
+            >{this.options[this.state.selectedMode]['label']}</button>}
             <ControlledMenu
               className='bg-transparent shadow-none min-w-0 text-center'
               anchorRef={menuRef}
@@ -306,8 +306,8 @@ class Paper extends React.Component {
             >
               {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
               <MenuItem value={key} key={key} 
-                className={`p-0 rounded-full mt-2 ${key === this.state.selectedMode ? 'bg-pink-300' : 'bg-green-300 hover:bg-blue-300' }   h-16`}>
-                <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+                className={`p-0 rounded-full mt-2 ${key === this.state.selectedMode ? 'bg-pink-300' : 'bg-green-300 hover:bg-blue-300' } h-12 md:h-16`}>
+                <p className="w-12 md:w-16 text-2xl md:text-3xl inline-block text-center">{this.options[key]['label']}</p>
               </MenuItem>
               )}
             </ControlledMenu>
@@ -326,15 +326,15 @@ class Paper extends React.Component {
           </div>
           <div id="sketch" 
             className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
-            <SketchField width='200vw'
-              height='200vh'
+            <SketchField 
+              width='100%'
+              height='100%'
               tool={this.state.tool}
               lineColor={this.state.toolColor}
               lineWidth={this.state.toolLineWidth}
               onChange={this.handleOnSketchChange.bind(this)}
             />
           </div>
-
         </div>
       </div>
     )
