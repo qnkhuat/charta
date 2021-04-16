@@ -65,7 +65,6 @@ class TextArea extends React.Component{
       element: null,
     };
   }
-
   
   handleOnBlur(e){
     const text = e.target.value;
@@ -274,20 +273,16 @@ class Paper extends React.Component {
   }
 
   render() {
-    const intro = <h3 className="w-full center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
-    const noti = <h3 className="center top-1/4 absolute z-50 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
+    const intro = <h3 className="w-full center absolute z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
+    const noti = <h3 className="center top-1/4 absolute z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
     const divs = this.state.divs;
-    
+
     // *** Menu ***
     const menuRef = React.createRef();
-    const menuButton = <button 
-      className='text-3xl rounded-full w-16 h-16 text-center bg-pink-300 focus:outline-none'
-      ref={menuRef} 
-    >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
       <div id="wrapper" className="cursor-pointer bg-transparent"
-          tabIndex="0"
+        tabIndex="0"
       >
         {this.state.intact === true && intro}
         {noti}
@@ -296,7 +291,10 @@ class Paper extends React.Component {
           onMouseOver={this.handleOnMouseOver.bind(this)}
         >
           <div>
-            {menuButton}
+            {<button 
+              className='text-2xl md:text-3xl rounded-full w-12 md:w-16 h-12 md:h-16 text-center bg-pink-300 focus:outline-none'
+              ref={menuRef} 
+            >{this.options[this.state.selectedMode]['label']}</button>}
             <ControlledMenu
               className='bg-transparent shadow-none min-w-0 text-center'
               anchorRef={menuRef}
@@ -306,8 +304,8 @@ class Paper extends React.Component {
             >
               {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
               <MenuItem value={key} key={key} 
-                className={`p-0 rounded-full mt-2 ${key === this.state.selectedMode ? 'bg-pink-300' : 'bg-green-300 hover:bg-blue-300' }   h-16`}>
-                <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
+                className={`p-0 rounded-full mt-2 ${key === this.state.selectedMode ? 'bg-pink-300' : 'bg-green-300 hover:bg-blue-300' } h-12 md:h-16`}>
+                <p className="w-12 md:w-16 text-2xl md:text-3xl inline-block text-center">{this.options[key]['label']}</p>
               </MenuItem>
               )}
             </ControlledMenu>
