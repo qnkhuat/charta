@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import Draggable from 'react-draggable';
 import './index.css'
@@ -19,6 +19,20 @@ function getTextWidth(text) {
   context.font = getComputedStyle(document.body).font;
   const width = context.measureText(text).width;
   return width;
+}
+
+function next(db, key){ // next key of the dict
+  const keyList = Object.keys(db);
+  var keyIndex = keyList.indexOf(key);
+  if (keyIndex == -1) return;
+  return keyIndex < (keyList.length - 1) ? keyList[keyIndex + 1] : keyList[0];
+}
+
+function prev(db, key){ // prev key of the dict
+  const keyList = Object.keys(db);
+  var keyIndex = keyList.indexOf(key);
+  if (keyIndex == -1) return;
+  return keyIndex == 0 ? keyList[keyList.length - 1] : keyList[keyIndex-1];
 }
 
 function isInBoundingBox(x, y, bx, by, bw, bh){
@@ -45,6 +59,7 @@ class TextArea extends React.Component{
     };
   }
 
+  
   handleOnBlur(e){
     const text = e.target.value;
     const lines = text.split("\n");
@@ -61,7 +76,7 @@ class TextArea extends React.Component{
     const lines = text.split("\n");
     let hasLongerLine = false;
     lines.forEach((line) => {
-      const lineWidth = getTextWidth(line);
+      const lineWidth = getTextWidth(line) + 10; // + 10 make it doesn't break on safari
       if (lineWidth > this.maxWidthLine){
         this.maxWidthLine = lineWidth;
         hasLongerLine = true; 
@@ -126,9 +141,11 @@ class Paper extends React.Component {
   constructor(props) {
     super(props);
     this.isDragging = false;
+    this.paperRef = null;
+    this.menuTimeoutId = null; // keep track of timeout to close menu
     this.state = {
       divs: [],
-      selectedMode: 'text',
+      selectedMode: 'sketch',
       menuOpen: false,
       intact:true,
       tool:Tools.Pencil,
@@ -136,13 +153,16 @@ class Paper extends React.Component {
       toolColor:"black"
     };
     this.options = {
-      ruler: {label: '📏',},
-      eraser: {label: '🧽',},
-      sketch: {label: '✏️',},
-      text: {label: '✒️'},
+      ruler: {label: '📏', tool:Tools.Line, lineWidth:5, color:'black'},
+      eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:25, color:'white'},
+      sketch: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
+      text: {label: '✒️', tool:null, lineWidth: null, color:null},
     }
   }
 
+  componentDidMount(){
+    window.addEventListener("keydown", this.handleOnKeyDown.bind(this));
+  }
 
   getZIndex(mode){ return mode === this.state.selectedMode ? 'z-30' : 'z-20';}
 
@@ -179,31 +199,19 @@ class Paper extends React.Component {
     }
   }
 
-  handleModeChange(e) {
+  setMode(mode){
     let tool = Tools.Pencil, lineWidth=5, color="black";
-    switch (e.value){
-      case "ruler":
-        tool = Tools.Line;
-        color = "black"
-        break;
-      case "eraser":
-        tool = Tools.Pencil;
-        lineWidth = 25;
-        color = "white";
-        break;
-      case "sketch":
-        tool = Tools.Pencil;
-        color = "black";
-      default:
-        break;
-    }
+    const option = this.options[mode];
     this.setState({
-      selectedMode: e.value,
-      tool: tool,
-      toolColor: color,
-      toolLineWidth: lineWidth,
-      menuOpen: false,
+      selectedMode: mode,
+      tool: option.tool,
+      toolColor: option.color,
+      toolLineWidth: option.lineWidth,
     })
+  }
+
+  handleModeChange(e) {
+    this.setMode(e.value);
   }
   
   handleOnMouseOver(){ // for phone only
@@ -220,10 +228,35 @@ class Paper extends React.Component {
     }
   }
 
+  handleOnKeyDown(e){
+    if (e.metaKey || e.ctrlKey) {
+      var hit = false;
+      if (e.key == 'z') {
+        hit = true;
+        e.preventDefault();
+        this.setMode(prev(this.options, this.state.selectedMode));
+      }
+      if (e.key == 'x') {
+        hit = true;
+        this.setMode(next(this.options, this.state.selectedMode));
+      }
+      if(!hit) return; // exit if not any desiable key is pressed
+      
+      if (!this.state.menuOpen) this.setState({menuOpen:true});
+      if (this.menuTimeoutId != null) {
+        clearTimeout(this.menuTimeoutId);
+        this.menuTimeoutId = null;
+      }
+      this.menuTimeoutId = setTimeout(() => {
+        if (this.state.menuOpen) this.setState({menuOpen:false});
+      }, 1000);
+    }
+  }
+
   render() {
     const intro = <h3 className="center absolute z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your paper<br></br>Click anywhere to start scribbling!</h3>;
     const divs = this.state.divs;
-
+    
     // *** Menu ***
     const menuRef = React.createRef();
     const menuButton = <button 
@@ -232,7 +265,10 @@ class Paper extends React.Component {
     >{this.options[this.state.selectedMode]['label']}</button>;
 
     return (
-      <div className="cursor-pointer">
+      <div id="wrapper" className="cursor-pointer"
+          tabIndex="0"
+          className="bg-transparent"
+      >
         {this.state.intact === true && intro}
         <div id="menu" className='absolute z-50 bottom-6 right-6'
           onMouseLeave={this.handleOnMouseLeave.bind(this)}
@@ -249,7 +285,7 @@ class Paper extends React.Component {
             >
               {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
               <MenuItem value={key} key={key} 
-                className="p-0 rounded-full bg-pink-300 mt-2 hover:bg-blue-300 h-16">
+                className={`p-0 rounded-full mt-2 ${key == this.state.selectedMode ? 'bg-pink-300' : 'bg-green-300 hover:bg-blue-300' }   h-16`}>
                 <p className="w-16 text-3xl inline-block text-center">{this.options[key]['label']}</p>
               </MenuItem>
               )}
@@ -287,9 +323,7 @@ class Paper extends React.Component {
 class App extends React.Component {
   render(){
     return (
-      <div id="wrapper">
-        <Paper/>
-      </div>
+      <Paper/>
     )
   }
 }
