@@ -117,7 +117,6 @@ class TextArea extends React.Component{
     })
   }
 
-
   render(){
     const style = {
       position: 'absolute',
@@ -272,10 +271,14 @@ class Paper extends React.Component {
       }, 1000);
     }
   }
+  log(){
+    console.log("click");
+    window.scrollTo(0, 1000);
+  }
 
   render() {
-    const intro = <h3 className="w-full center absolute z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
-    const noti = <h3 className="center top-1/4 absolute z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
+    const intro = <h3 className="w-full center fixed z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
+    const noti = <h3 className="center top-1/4 jixed z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
     const divs = this.state.divs;
 
     // *** Menu ***
@@ -287,7 +290,7 @@ class Paper extends React.Component {
       >
         {this.state.intact === true && intro}
         {noti}
-        <div id="menu" className='absolute z-50 bottom-6 right-6'
+        <div id="menu" className='fixed z-50 bottom-6 right-6'
           onMouseLeave={this.handleOnMouseLeave.bind(this)}
           onMouseOver={this.handleOnMouseOver.bind(this)}
         >
@@ -315,7 +318,8 @@ class Paper extends React.Component {
         </div>
 
         <div id="paper" 
-          className="absolute w-screen h-screen overflow-scroll top-0 left-0"
+          className="absolute w-screen h-screen top-0 left-0 overflow-auto"
+          onClick={this.log.bind(this)}
         >
           <div 
             id={TEXTS_ID}
