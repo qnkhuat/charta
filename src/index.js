@@ -1,31 +1,54 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Draggable from 'react-draggable';
-import ScrollContainer from 'react-indiana-drag-scroll'
 import {SketchField, Tools} from 'react-sketch';
 import {
   ControlledMenu,
   MenuItem,
 } from '@szhsin/react-menu';
 import '@szhsin/react-menu/dist/index.css';
-import './index.css'
+import './index.css';
+const fabric = require("fabric").fabric;
 
 
-const TEXTS_ID= 'texts';
+class ExtendedSketchField extends SketchField {
+
+  addTextCustom = (text, options={}) => {
+    let canvas = this._fc;
+
+    let iText = new fabric.IText(text, options);
+    let opts = {
+      left: options.x,
+      top: options.y,
+    };
+    Object.assign(options, opts);
+    iText.set({
+      left: options.left,
+      top: options.top,
+    });
+
+    canvas.add(iText);
+    canvas.isDrawingMode = false;
+    canvas.selection = true;
+    canvas.forEachObject((o) => {
+      o.selectable = true;
+      o.evented = true;
+    });
+    const objects = canvas.getObjects();
+    const object = objects[objects.length - 1];
+    object.enterEditing();
+    canvas.setActiveObject(object);
+  };
+
+  callEvent = (e, eventFunction) => {
+    if (this._selectedTool) eventFunction(e);
+  };
+};
 
 
 // ****** Utilities ******
 function capitalize(str) {
   const lower = str.toLowerCase();
   return str.charAt(0).toUpperCase() + lower.slice(1);
-}
-
-function getTextWidth(text) {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  context.font = getComputedStyle(document.body).font;
-  const width = context.measureText(text).width;
-  return width;
 }
 
 function next(db, key){ // next key of the dict
@@ -42,124 +65,20 @@ function prev(db, key){ // prev key of the dict
   return keyIndex === 0 ? keyList[keyList.length - 1] : keyList[keyIndex-1];
 }
 
-function isInBoundingBox(x, y, bx, by, bw, bh){
-  if (bx <= x && x <= (bx + bw) && by <= y && y <= (by + bh)){
-    return true;
-  }
-  return false;
-}
-
 // ****** Main Components ******
-class TextArea extends React.Component{
-  // Maybe construct into multiple p lines rather than one single Textarea
-  constructor(props){
-    super(props);
-    this.maxWidthLine = 1; // Default width of a text while editing
-    this.isEditting = true;
-    this.state = {
-      x: props.x,
-      y: props.y,
-      value: '',
-      rows: 1,
-      width: this.maxWidthLine,
-      height: 0,
-      element: null,
-    };
-  }
-
-  handleOnBlur(e){
-    const text = e.target.value;
-    const lines = text.split("\n");
-    this.setState({
-      value:text,
-      rows: lines.length,
-    });
-    this.isEditting = false;
-  }
-
-  handleOnChange(e){
-    this.isEditting = true;
-    const text = e.target.value;
-    const lines = text.split("\n");
-    let hasLongerLine = false;
-    lines.forEach((line) => {
-      const lineWidth = getTextWidth(line) + 10; // + 10 make it doesn't break on safari
-      if (lineWidth > this.maxWidthLine){
-        this.maxWidthLine = lineWidth;
-        hasLongerLine = true; 
-      }
-    })
-    if (hasLongerLine || lines.length > this.state.rows){
-      this.setState({
-        value: text,
-        rows: lines.length,
-        width: this.maxWidthLine, // in px
-      });
-    }
-  }
-
-  componentDidUpdate(previousProps, previousState){  
-    // TODO : is there a better way to do this without ref?
-    const height = this.element.getBoundingClientRect().height;
-    if (height !== this.state.height){ // Prevent infinite update
-      this.setState({height:height})
-    }
-  }
-
-  focus(){
-    this.element.focus();
-  }
-
-  handleOnStopDrag(e){
-    this.setState({
-      x:e.offsetLeft,
-      y:e.offsetTop,
-    })
-  }
-
-
-  render(){
-    const style = {
-      position: 'absolute',
-      left: this.state.x + 'px',
-      top: this.state.y + 'px',
-      width: this.state.width > 30 ? this.state.width : 30 + 'px',
-      background: 'transparent',
-      overflow: 'hidden',
-    }
-
-    return (
-      <Draggable
-        onStop={this.handleOnStopDrag.bind(this)}
-      >
-        <textarea style={style} autoFocus 
-          className={`textarea-purge focus:border-blue-300`}
-          ref={(element) => {this.element = element }}
-          rows={this.state.rows}
-          onBlur={this.handleOnBlur.bind(this)}
-          onChange={this.handleOnChange.bind(this)}/>  
-
-      </Draggable>
-    )
-  }
-}
-
 class Paper extends React.Component {
   constructor(props) {
     super(props);
-    this.isDragging = false;
-    this.paperRef = null;
     this.menuTimeoutId = null; // keep track of timeout to close menu
     this.notiTimeoutId= null; // keep track of timeout to close menu
     this.state = {
-      divs: [],
       selectedMode: 'text',
       menuOpen: false,
-      intact:true,
-      tool:Tools.Pencil,
-      toolLineWidth:3,
-      toolColor:"black",
-      noti:""
+      intact: true,
+      tool: Tools.Pan,
+      toolLineWidth: 3,
+      toolColor: "black",
+      noti: "",
     };
     this.options = {
       selector: {label: '🤚', tool:Tools.Select, lineWidth:5, color:'black'},
@@ -169,49 +88,16 @@ class Paper extends React.Component {
       eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:60, color:'white'},
       pencil: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
       text: {label: '🔤', tool:null, lineWidth: null, color:null},
+      move: {label: '📍', tool:Tools.Pan, lineWidth: null, color:null},
     }
   }
 
-  componentDidMount(){
+  componentDidMount() {
     window.addEventListener("keydown", this.handleOnKeyDown.bind(this));
   }
 
-  getZIndex(mode){ return mode === this.state.selectedMode ? 'z-30' : 'z-20';}
 
-  createDiv(x, y){
-    const divs = this.state.divs.slice();
-    const divRef = React.createRef();
-    const div = <TextArea key={`${x},${y}`} x={x} y={y} ref={divRef}/>;
-    const newDivs = divs.filter(div => div.ref.current.state.value.length > 0); // Remove non-text div
-
-    newDivs.push({div:div, ref:divRef}); // Add the current one
-    this.setState({divs:newDivs});
-  }
-
-  handleOnClick(e) {
-    if (e.target.id !== TEXTS_ID) return;
-
-    if (this.state.intact){
-      this.setState({intact:false})
-    }
-
-    const rect = e.target.getBoundingClientRect();
-    const x = e.clientX - rect.left,
-      y = e.clientY - rect.top - 10; // a lil - 10 doesn't kill nobody
-    const divs = this.state.divs.slice();
-    const overlappedDivs = divs.filter(div => isInBoundingBox(x, y, 
-      div.ref.current.state.x, div.ref.current.state.y, 
-      div.ref.current.state.width, div.ref.current.state.height)
-    )
-    if (overlappedDivs.length > 0){
-      // No create, focus on the existed on instead
-      overlappedDivs[0].ref.current.focus();
-    } else {
-      this.createDiv(x, y);
-    }
-  }
-
-  setMode(mode){
+  setMode(mode) {
     const option = this.options[mode];
     this.setState({
       selectedMode: mode,
@@ -222,7 +108,7 @@ class Paper extends React.Component {
     this.setNoti(capitalize(mode));
   }
 
-  setNoti(message){
+  setNoti(message) {
     this.setState({
       noti:message,
     });
@@ -232,16 +118,16 @@ class Paper extends React.Component {
     }, 1000);
   }
 
-  handleModeChange(e) {
+  handleOnModeChange(e) {
     this.setMode(e.value);
     this.setState({menuOpen:false});
   }
 
-  handleOnMouseOver(){ // for phone only
+  handleOnMouseOver() { // for phone only
     this.setState({menuOpen:true});
   }
 
-  handleOnMouseLeave(){
+  handleOnMouseLeave() {
     this.setState({menuOpen:false});
   }
 
@@ -273,21 +159,27 @@ class Paper extends React.Component {
     }
   }
 
+  handleOnMouseDown(e){
+    if(this.state.selectedMode !== 'text') return;
+    const rect = e.target.getBoundingClientRect();
+    const x = e.clientX - rect.left,
+      y = e.clientY - rect.top - 10; // a lil - 10 doesn't kill nobody
+
+    this._sketch.addTextCustom("", {x:x, y:y});
+  }
+
   render() {
-    const intro = <h3 className="w-full center absolute z-10 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
-    const noti = <h3 className="center top-1/4 absolute z-10 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
-    const divs = this.state.divs;
+    const intro = <h3 className="w-full center fixed z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
+    const noti = <h3 className="center top-1/4 fixed z-50 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
 
     // *** Menu ***
     const menuRef = React.createRef();
 
     return (
-      <div id="wrapper" className="cursor-pointer bg-transparent"
-        tabIndex="0"
-      >
+      <div id="wrapper" className="bg-transparent" tabIndex="0">
         {this.state.intact === true && intro}
         {noti}
-        <div id="menu" className='absolute z-50 bottom-6 right-6'
+        <div id="menu" className='fixed z-50 bottom-6 right-6'
           onMouseLeave={this.handleOnMouseLeave.bind(this)}
           onMouseOver={this.handleOnMouseOver.bind(this)}
         >
@@ -302,7 +194,7 @@ class Paper extends React.Component {
               anchorRef={menuRef}
               direction='top'
               isOpen={this.state.menuOpen}
-              onClick={this.handleModeChange.bind(this)}
+              onClick={this.handleOnModeChange.bind(this)}
             >
               {this.options.length !== 0 && Object.keys(this.options).map((key, index) =>
               <MenuItem value={key} key={key} 
@@ -315,20 +207,15 @@ class Paper extends React.Component {
         </div>
 
         <div id="paper" 
-          className="absolute w-screen h-screen overflow-scroll top-0 left-0"
-        >
-          <div 
-            id={TEXTS_ID}
-            className={`bg-transparent ${this.getZIndex('text')} w-x2 h-x2 absolute`}
-            onClick={this.handleOnClick.bind(this)}
-          >
-            {divs.length !== 0 && divs.map((div)=> div.div)}
-          </div>
+          className="absolute w-screen h-screen top-0 left-0 overflow-auto">
           <div id="sketch" 
-            className={`${this.getZIndex('sketch')} bg-transparent  w-x2 h-x2 absolute`}>
-            <SketchField 
+            className={`bg-transparent  w-full h-full  absolute`}
+            onMouseDown={this.handleOnMouseDown.bind(this)}
+          >
+            <ExtendedSketchField
               width='100%'
               height='100%'
+              ref={(c) => (this._sketch = c)}
               tool={this.state.tool}
               lineColor={this.state.toolColor}
               lineWidth={this.state.toolLineWidth}
