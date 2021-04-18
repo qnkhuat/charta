@@ -46,12 +46,11 @@ function isInBoundingBox(x, y, bx1, by1, bx2, by2){
 class ExtendedSketchField extends SketchField {
 
   addTextCustom = (text, options={}) => {
-    console.log("start");
     let canvas = this._fc;
     
     // Remove emtpy objects
     for (const o of canvas.getObjects()){
-      if (o.text == "") canvas.remove(o);
+      if (o.text == "" && o.constructor == fabric.IText) canvas.remove(o);
     }
 
     let iText = new fabric.IText(text, options);
@@ -67,6 +66,7 @@ class ExtendedSketchField extends SketchField {
 
     // Select the existed when click on one
     for (const o of canvas.getObjects()){
+      if(o.constructor != fabric.IText) continue;
       if (isInBoundingBox(opts.left, opts.top, o.aCoords.tl.x, o.aCoords.tl.y, o.aCoords.br.x, o.aCoords.br.y)){
         o.enterEditing();
         canvas.setActiveObject(o);
