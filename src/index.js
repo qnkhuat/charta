@@ -162,15 +162,22 @@ class Paper extends React.Component {
   handleOnMouseDown(e){
     if(this.state.selectedMode !== 'text') return;
     const rect = e.target.getBoundingClientRect();
-    const x = e.clientX - rect.left,
-      y = e.clientY - rect.top - 10; // a lil - 10 doesn't kill nobody
+    const x = e.clientX,
+      y = e.clientY; // a lil - 10 doesn't kill nobody
 
     this._sketch.addTextCustom("", {x:x, y:y});
   }
 
   render() {
-    const intro = <h3 className="w-full center fixed z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
-    const noti = <h3 className="center top-1/4 fixed z-50 text-center text-red-400 font-bold text-3xl">{this.state.noti}</h3>;
+    //const intro = <h3 className="w-full center fixed z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
+    const intro = <div className="w-full center fixed z-50 text-center animate-pulse">
+      <p className="text-2xl text-gray-500 font-bold">If they give you ruled paper<br></br>write the other way.</p>
+      <i className="text-gray-400">- Juan Ramón Jiménez</i>
+    </div>
+    const noti = <div className="center top-1/4 fixed z-50 text-center">
+      <p className = "text-red-400 font-bold text-3xl">{this.state.noti}</p>
+      <p className = "text-gray-400 text-xl font-bold">Press cmd/ctrl + z/x to change tool.</p>
+    </div>
 
     // *** Menu ***
     const menuRef = React.createRef();
@@ -178,7 +185,7 @@ class Paper extends React.Component {
     return (
       <div id="wrapper" className="bg-transparent" tabIndex="0">
         {this.state.intact === true && intro}
-        {noti}
+        {this.state.noti !== "" && noti}
         <div id="menu" className='fixed z-50 bottom-6 right-6'
           onMouseLeave={this.handleOnMouseLeave.bind(this)}
           onMouseOver={this.handleOnMouseOver.bind(this)}
