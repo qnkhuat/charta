@@ -50,7 +50,7 @@ class ExtendedSketchField extends SketchField {
     
     // Remove emtpy objects
     for (const o of canvas.getObjects()){
-      if (o.text == "" && o.constructor == fabric.IText) canvas.remove(o);
+      if (o.text === "" && o.constructor === fabric.IText) canvas.remove(o);
     }
 
     let iText = new fabric.IText(text, options);
@@ -66,7 +66,7 @@ class ExtendedSketchField extends SketchField {
 
     // Select the existed when click on one
     for (const o of canvas.getObjects()){
-      if(o.constructor != fabric.IText) continue;
+      if(o.constructor !== fabric.IText) continue;
       if (isInBoundingBox(opts.left, opts.top, o.aCoords.tl.x, o.aCoords.tl.y, o.aCoords.br.x, o.aCoords.br.y)){
         o.enterEditing();
         canvas.setActiveObject(o);
@@ -176,9 +176,8 @@ class Paper extends React.Component {
 
   handleOnMouseDown(e){
     if(this.state.selectedMode !== 'text') return;
-    const rect = e.target.getBoundingClientRect();
     const x = e.clientX,
-      y = e.clientY; // a lil - 10 doesn't kill nobody
+      y = e.clientY;
     this._sketch.addTextCustom("", {x:x, y:y});
   }
 
@@ -228,7 +227,7 @@ class Paper extends React.Component {
         <div id="paper" 
           className="absolute w-screen h-screen top-0 left-0 overflow-auto">
           <div id="sketch" 
-            className={`bg-transparent w-full h-full  absolute ${this.state.selectedMode == "text" ? "cursor-text" : "cursor-auto"}`}
+            className={`bg-transparent w-full h-full  absolute ${this.state.selectedMode === "text" ? "cursor-text" : "cursor-auto"}`}
             onMouseDown={this.handleOnMouseDown.bind(this)}
           >
             <ExtendedSketchField
