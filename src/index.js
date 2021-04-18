@@ -10,36 +10,6 @@ import './index.css';
 const fabric = require("fabric").fabric;
 
 
-class ExtendedSketchField extends SketchField {
-
-  addTextCustom = (text, options={}) => {
-    let canvas = this._fc;
-
-    let iText = new fabric.IText(text, options);
-    let opts = {
-      left: options.x + canvas.vptCoords.tl.x,
-      top: options.y + canvas.vptCoords.tl.y,
-    };
-    Object.assign(options, opts);
-    iText.set({
-      left: options.left,
-      top: options.top,
-    });
-
-    canvas.add(iText);
-    canvas.isDrawingMode = false;
-    canvas.selection = true;
-    canvas.forEachObject((o) => {
-      o.selectable = true;
-      o.evented = true;
-    });
-    const objects = canvas.getObjects();
-    const object = objects[objects.length - 1];
-    object.enterEditing();
-    canvas.setActiveObject(object);
-  };
-};
-
 
 // ****** Utilities ******
 function capitalize(str) {
@@ -61,7 +31,57 @@ function prev(db, key){ // prev key of the dict
   return keyIndex === 0 ? keyList[keyList.length - 1] : keyList[keyIndex-1];
 }
 
+
+function isInBoundingBox(x, y, bx1, by1, bx2, by2){
+  // (bx1, by1) is top left
+  // (bx2, by2) is bottom right
+  if (bx1 <= x && x <= bx2 && by1 <= y && y <= by2){
+    return true;
+  }
+  return false;
+}
+
 // ****** Main Components ******
+
+class ExtendedSketchField extends SketchField {
+
+  addTextCustom = (text, options={}) => {
+    console.log("start");
+    let canvas = this._fc;
+    
+    // Remove emtpy objects
+    for (const o of canvas.getObjects()){
+      if (o.text == "") canvas.remove(o);
+    }
+
+    let iText = new fabric.IText(text, options);
+    let opts = {
+      left: options.x + canvas.vptCoords.tl.x,
+      top: options.y + canvas.vptCoords.tl.y,
+    };
+    Object.assign(options, opts);
+    iText.set({
+      left: options.left,
+      top: options.top,
+    });
+
+    // Select the existed when click on one
+    for (const o of canvas.getObjects()){
+      if (isInBoundingBox(opts.left, opts.top, o.aCoords.tl.x, o.aCoords.tl.y, o.aCoords.br.x, o.aCoords.br.y)){
+        o.enterEditing();
+        canvas.setActiveObject(o);
+        return;
+      }
+    }
+    canvas.add(iText);
+    const objects = canvas.getObjects();
+    const object = objects[objects.length - 1];
+    object.enterEditing();
+    canvas.setActiveObject(object);
+  };
+};
+
+
 class Paper extends React.Component {
   constructor(props) {
     super(props);
@@ -83,7 +103,7 @@ class Paper extends React.Component {
       line: {label: '📏', tool:Tools.Line, lineWidth:5, color:'black'},
       eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:60, color:'white'},
       pencil: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
-      text: {label: '🔤', tool:null, lineWidth: null, color:null},
+      text: {label: '🔤', tool:Tools.Select, lineWidth: null, color:null},
       move: {label: '📍', tool:Tools.Pan, lineWidth: null, color:null},
     }
   }
@@ -159,7 +179,6 @@ class Paper extends React.Component {
     const rect = e.target.getBoundingClientRect();
     const x = e.clientX,
       y = e.clientY; // a lil - 10 doesn't kill nobody
-
     this._sketch.addTextCustom("", {x:x, y:y});
   }
 
@@ -168,12 +187,12 @@ class Paper extends React.Component {
       <p className="text-2xl text-gray-500 font-bold">If they give you ruled paper<br></br>write the other way.</p>
       <i className="text-gray-400">- Juan Ramón Jiménez</i>
     </div>
-    const noti = <div className="center top-1/4 fixed z-50 text-center">
-      <p className = "text-red-400 font-bold text-3xl">{this.state.noti}</p>
-      <p className = "text-gray-400 text-xl font-bold">Press cmd/ctrl + z/x to change tool.</p>
-    </div>
+      const noti = <div className="center top-1/4 fixed z-50 text-center">
+        <p className = "text-red-400 font-bold text-3xl">{this.state.noti}</p>
+        <p className = "text-gray-400 text-xl font-bold">Press cmd/ctrl + z/x to change tool.</p>
+      </div>
 
-    const menuRef = React.createRef();
+      const menuRef = React.createRef();
 
     return (
       <div id="wrapper" className="bg-transparent" tabIndex="0">
@@ -209,7 +228,7 @@ class Paper extends React.Component {
         <div id="paper" 
           className="absolute w-screen h-screen top-0 left-0 overflow-auto">
           <div id="sketch" 
-            className={`bg-transparent  w-full h-full  absolute`}
+            className={`bg-transparent w-full h-full  absolute ${this.state.selectedMode == "text" ? "cursor-text" : "cursor-auto"}`}
             onMouseDown={this.handleOnMouseDown.bind(this)}
           >
             <ExtendedSketchField
