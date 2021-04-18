@@ -103,7 +103,7 @@ class Paper extends React.Component {
       line: {label: '📏', tool:Tools.Line, lineWidth:5, color:'black'},
       eraser: {label: '🧽', tool:Tools.Pencil, lineWidth:60, color:'white'},
       pencil: {label: '✏️', tool:Tools.Pencil, lineWidth:5, color:'black'},
-      text: {label: '🔤', tool:Tools.Select, lineWidth: null, color:null},
+      text: {label: '🔤', tool:Tools.Pan, lineWidth: null, color:null},
       move: {label: '📍', tool:Tools.Pan, lineWidth: null, color:null},
     }
   }
