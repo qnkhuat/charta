@@ -17,8 +17,8 @@ class ExtendedSketchField extends SketchField {
 
     let iText = new fabric.IText(text, options);
     let opts = {
-      left: options.x,
-      top: options.y,
+      left: options.x + canvas.vptCoords.tl.x,
+      top: options.y + canvas.vptCoords.tl.y,
     };
     Object.assign(options, opts);
     iText.set({
@@ -37,10 +37,6 @@ class ExtendedSketchField extends SketchField {
     const object = objects[objects.length - 1];
     object.enterEditing();
     canvas.setActiveObject(object);
-  };
-
-  callEvent = (e, eventFunction) => {
-    if (this._selectedTool) eventFunction(e);
   };
 };
 
@@ -96,7 +92,6 @@ class Paper extends React.Component {
     window.addEventListener("keydown", this.handleOnKeyDown.bind(this));
   }
 
-
   setMode(mode) {
     const option = this.options[mode];
     this.setState({
@@ -149,8 +144,8 @@ class Paper extends React.Component {
         hit = true;
         this.setMode(next(this.options, this.state.selectedMode));
       }
-      if(!hit) return; // exit if not any desiable key is pressed
 
+      if(!hit) return; // exit if not any desiable key is pressed
       if (!this.state.menuOpen) this.setState({menuOpen:true});
       if (this.menuTimeoutId != null) clearTimeout(this.menuTimeoutId);
       this.menuTimeoutId = setTimeout(() => {
@@ -169,7 +164,6 @@ class Paper extends React.Component {
   }
 
   render() {
-    //const intro = <h3 className="w-full center fixed z-50 text-center text-gray-500 font-bold text-xl animate-pulse">This is a paper just like your real paper.<br></br>Click anywhere to start scribbling 🎨<br></br><br></br> Press cmd/ctrl + z/x to change tool.</h3>;
     const intro = <div className="w-full center fixed z-50 text-center animate-pulse">
       <p className="text-2xl text-gray-500 font-bold">If they give you ruled paper<br></br>write the other way.</p>
       <i className="text-gray-400">- Juan Ramón Jiménez</i>
@@ -179,7 +173,6 @@ class Paper extends React.Component {
       <p className = "text-gray-400 text-xl font-bold">Press cmd/ctrl + z/x to change tool.</p>
     </div>
 
-    // *** Menu ***
     const menuRef = React.createRef();
 
     return (
@@ -247,34 +240,4 @@ ReactDOM.render(
   <App/>,
   document.getElementById('root')
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
