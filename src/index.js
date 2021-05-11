@@ -176,9 +176,8 @@ class Paper extends React.Component {
 
   handleOnMouseDown(e){
     if(this.state.selectedMode !== 'text') return;
-    const rect = e.target.getBoundingClientRect();
     const x = e.clientX,
-      y = e.clientY; // a lil - 10 doesn't kill nobody
+      y = e.clientY - 30; // a lil - 10 doesn't kill nobody
     this._sketch.addTextCustom("", {x:x, y:y});
   }
 
